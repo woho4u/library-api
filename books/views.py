@@ -7,4 +7,4 @@ class BookViewSet(viewsets.ModelViewSet):
     queryset = Book.objects.all()
     serializer_class = BookSerializer
     filter_backends = [SearchFilter]
-    search_fields = ['title', 'author']
+    search_fields = ['title', 'author', 'id']
