@@ -43,6 +43,7 @@ INSTALLED_APPS = [
     'books',
     'rest_framework',
     'corsheaders',
+    'django_filters',
 ]
 
 MIDDLEWARE = [
@@ -73,6 +74,11 @@ TEMPLATES = [
         },
     },
 ]
+
+REST_FRAMEWORK = {
+    'DEFAULT_FILTER_BACKENDS': ['django_filters.rest_framework.DjangoFilterBackend',]
+}
+
 
 WSGI_APPLICATION = 'library_backend.wsgi.application'
 
