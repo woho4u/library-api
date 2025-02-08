@@ -1,55 +1,52 @@
 from rest_framework import viewsets
-from .models import User
-from .serializers import UserSerializer
-from rest_framework.filters import SearchFilter
+from .models import User, ReadingList, ReadingListBook
+from .serializers import (
+    UserSerializer,
+    ReadingListSerializer,
+    ReadingListBookSerializer
+)
 
-from rest_framework.views import APIView
-from rest_framework.response import Response
-from rest_framework import status
-from rest_framework.permissions import IsAuthenticated
 
 class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
     serializer_class = UserSerializer
-    filter_backends = [SearchFilter]
-    search_fields = ['username', 'id']  # keep search for text if desired
 
 
-class AddBookToReadingListView(APIView):
-    def post(self, request, *args, **kwargs):
-        # Extract book_id and optionally a reading list name from the request
-        book_id = request.data.get("book_id")
-        list_name = request.data.get("list_name", "Favorites")
-        user_id = request.data.get("user_id")
+class ReadingListViewSet(viewsets.ModelViewSet):
+    queryset = ReadingList.objects.all()
+    serializer_class = ReadingListSerializer
 
-        if not book_id:
-            return Response({"error": "book_id is required."},
-                            status=status.HTTP_400_BAD_REQUEST)
+#return reading lists belonging to the user in the pasams
+    def get_queryset(self):
+        #get the query params
+        user_param = self.request.query_params.get('user')
+        #if there are any params, return readinglists with a
+        #user id matching the user_params
+        if user_param is not None:
+            return ReadingList.objects.filter(user_id=user_param)
+        return super().get_queryset()
 
-        user = request.user
+    def perform_create(self, serializer):
+        """
+        Example of customizing create behavior:
+        - If you want to automatically assign the current user, for instance:
 
-        # Get existing reading lists or initialize an empty list
-        reading_lists = user.reading_lists if user.reading_lists else []
+        serializer.save(user=self.request.user)
 
-        # Search for the specified reading list
-        for reading_list in reading_lists:
-            if reading_list.get("name") == list_name:
-                # Add the book_id if not already in the list
-                if book_id not in reading_list.get("bookIds", []):
-                    reading_list.setdefault("bookIds", []).append(book_id)
-                break
-        else:
-            # If the list doesn't exist, create a new one
-            reading_lists.append({
-                "name": list_name,
-                "bookIds": [book_id]
-            })
+        Here, we assume the user is passed in the request body or handled
+        by the `ReadingListSerializer`'s user_id field.
+        """
+        serializer.save()
 
-        # Update and save the user's reading lists
-        user.reading_lists = reading_lists
-        user.save()
 
-        return Response({
-            "message": "Book added successfully",
-            "reading_lists": reading_lists
-        }, status=status.HTTP_200_OK)
+class ReadingListBookViewSet(viewsets.ModelViewSet):
+    queryset = ReadingListBook.objects.all()
+    serializer_class = ReadingListBookSerializer
+
+    def perform_create(self, serializer):
+        """
+        When creating a new reading_list_books entry, 
+        you can do custom logic here if needed.
+        """
+
+        serializer.save()
