@@ -18,11 +18,14 @@ from django.contrib import admin
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 from books.views import BookViewSet
-from users.views import UserViewSet
+from users.views import UserViewSet, ReadingListViewSet, ReadingListBookViewSet
+
 
 router = DefaultRouter()
-router.register(r'books', BookViewSet)
-router.register(r'users', UserViewSet)
+router.register(r'users', UserViewSet, basename='user')
+router.register(r'books', BookViewSet, basename='book')
+router.register(r'reading-lists', ReadingListViewSet, basename='readinglist')
+router.register(r'reading-list-books', ReadingListBookViewSet, basename='readinglistbook')
 
 urlpatterns = [
     path('admin/', admin.site.urls),
